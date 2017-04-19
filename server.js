@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
-var fs = require('fs');
-//Instead of going through a database, I decided a text file would be more reliable and easier
+var mongo = require('mongodb').MongoClient;
+//This is the mongodb version
 function getRandomNumber(max){
     return Math.floor(Math.random()*max);
 }
@@ -13,15 +13,23 @@ app.get('/new/*', function(req,res){
         if(url.includes("http://")){
             var random = getRandomNumber(10000)+10000 //Ensures it will be at least 5 characters long
             var writeString = url+","+random+"\n";
-            fs.appendFile("./urls.txt", writeString, 'utf-8', function(err, data){
+            mongo.connect('mongodb://localhost:27017/urls', function(err, db){
                 if(err) throw err;
-                var json = {
-                    'original-url': url,
-                    'short-url': 'http://free-code-school-ddxtanx.c9users.io/'+random
+                var shortens = db.collection('shortens');
+                var insdata = {
+                    'url': url,
+                    'id': random
                 }
-                res.writeHead(200, {'Content-Type': 'text/json'});
-                res.end(JSON.stringify(json));
-            });
+                shortens.insert(insdata, function(err, data){
+                    if(err) throw err;
+                    res.writeHead(200, {'Content-Type': 'text/json'});
+                    var reply = {
+                        'original-url': url,
+                        'shortened-url': "https://free-code-school-ddxtanx.c9users.io/"+random
+                    }
+                    res.end(JSON.stringify(reply));
+                })
+            })
         } else{
             res.writeHead(404, {'Content-Type': 'text/json'});
             res.end("{'error': 'Please input a valid url'");
@@ -30,17 +38,22 @@ app.get('/new/*', function(req,res){
 });
 app.get("/:id", function(req, res){
     var id = req.params.id;
-    fs.readFile("./urls.txt", function(err, data){
-        if (err) throw err;
-        var lines = data.toString().split("\n");
-        for(var x = 0; x<lines.length; x++){
-            var writtenId = lines[x].split(",")[1];
-            if(writtenId==id){
-                res.redirect(lines[x].split(",")[0]);
-                res.end();
+    console.log(id);
+    mongo.connect('mongodb://localhost:27017/urls', function(err, db){
+        if(err) throw err;
+        var shortens = db.collection('shortens');
+        shortens.find({
+            id: parseInt(id) 
+        }).toArray(function(err, data){
+            if(err) throw err;
+            console.log(data);
+            if(data.length!==0){
+                res.redirect(data[0]['url']);
             }
-        }
+            res.end();
+            db.close();
+        });
     })
-})
+});
 
 app.listen(8080)
