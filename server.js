@@ -10,19 +10,22 @@ app.get('/new/*', function(req,res){
     if(url.slice(0, 4)=="/new"){
         console.log("Creating new string");
         var url = req.url.slice(5, req.url.length);
-        var random = getRandomNumber(10000)+10000 //Ensures it will be at least 5 characters long
-        var writeString = url+","+random+"\n";
-        fs.appendFile("./urls.txt", writeString, 'utf-8', function(err, data){
-            if(err) throw err;
-            var json = {
-                'original-url': url,
-                'short-url': 'http://free-code-school-ddxtanx.c9users.io/'+random
-            }
-            res.writeHead(200, {'Content-Type': 'text/json'});
-            res.end(JSON.stringify(json));
-        });
-    } else{
-        next();
+        if(url.includes("http://")){
+            var random = getRandomNumber(10000)+10000 //Ensures it will be at least 5 characters long
+            var writeString = url+","+random+"\n";
+            fs.appendFile("./urls.txt", writeString, 'utf-8', function(err, data){
+                if(err) throw err;
+                var json = {
+                    'original-url': url,
+                    'short-url': 'http://free-code-school-ddxtanx.c9users.io/'+random
+                }
+                res.writeHead(200, {'Content-Type': 'text/json'});
+                res.end(JSON.stringify(json));
+            });
+        } else{
+            res.writeHead(404, {'Content-Type': 'text/json'});
+            res.end("{'error': 'Please input a valid url'");
+        }
     }
 });
 app.get("/:id", function(req, res){
