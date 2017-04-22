@@ -13,7 +13,7 @@ app.get('/new/*', function(req,res){
         if(url.includes("http://")){
             var random = getRandomNumber(10000)+10000 //Ensures it will be at least 5 characters long
             var writeString = url+","+random+"\n";
-            mongo.connect('mongodb://localhost:27017/urls', function(err, db){
+            mongo.connect('mongodb://admin:password@ds115071.mlab.com:15071/urls', function(err, db){
                 if(err) throw err;
                 var shortens = db.collection('shortens');
                 var insdata = {
@@ -39,7 +39,7 @@ app.get('/new/*', function(req,res){
 app.get("/:id", function(req, res){
     var id = req.params.id;
     console.log(id);
-    mongo.connect('mongodb://localhost:27017/urls', function(err, db){
+    mongo.connect('mongodb://admin:password@ds115071.mlab.com:15071/urls', function(err, db){
         if(err) throw err;
         var shortens = db.collection('shortens');
         shortens.find({
@@ -56,4 +56,4 @@ app.get("/:id", function(req, res){
     })
 });
 
-app.listen(8080)
+app.listen(process.env.PORT || 8080)
