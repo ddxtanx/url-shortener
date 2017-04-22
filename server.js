@@ -25,7 +25,7 @@ app.get('/new/*', function(req,res){
                     res.writeHead(200, {'Content-Type': 'text/json'});
                     var reply = {
                         'original-url': url,
-                        'shortened-url': req.headers.host+"/"+random
+                        'shortened-url': "https://"+req.headers.host+"/"+random
                     }
                     res.end(JSON.stringify(reply));
                 })
